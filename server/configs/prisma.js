@@ -6,7 +6,11 @@ import { Pool, neonConfig } from '@neondatabase/serverless'; // Pool اضافه 
 import ws from 'ws'; // import the WebSocket constructor
 neonConfig.webSocketConstructor = ws;
 
-const connectionString = `${process.env.DATABASE_URL}`;
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL missing");
+}
 
 // مرحله اول: ساخت یک Pool برای نئون
 const pool = new Pool({ connectionString });
