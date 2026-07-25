@@ -9,10 +9,13 @@ import { inngest, functions } from './inngest/index.js';
 
 const app = express();
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-// Inngest BEFORE Clerk
+// ========================================
+// INNGEST
+// ========================================
+
 app.use(
   '/api/inngest',
   serve({
@@ -21,26 +24,39 @@ app.use(
   })
 );
 
-// Clerk AFTER Inngest
+// ========================================
+// CLERK
+// ========================================
+
 app.use(clerkMiddleware());
 
+// ========================================
+// TEST ROUTES
+// ========================================
+
 app.get('/', (req, res) => {
-  res.send('Server is running');
+  res.status(200).send('Server is running');
 });
 
-app.all('/api/debug', (req, res) => {
+app.get('/api/debug', (req, res) => {
   res.json({
     ok: true,
-    method: req.method,
     auth: req.auth,
-    headers: req.headers,
   });
 });
+
+// ========================================
+// ENV CHECK
+// ========================================
 
 console.log({
   signing: !!process.env.INNGEST_SIGNING_KEY,
   event: !!process.env.INNGEST_EVENT_KEY,
 });
+
+// ========================================
+// LOCAL SERVER
+// ========================================
 
 const PORT = process.env.PORT || 5000;
 
