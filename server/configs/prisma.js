@@ -6,6 +6,11 @@ import { Pool, neonConfig } from '@neondatabase/serverless'; // Pool اضافه 
 import ws from 'ws'; // import the WebSocket constructor
 neonConfig.webSocketConstructor = ws;
 
+console.log("DATABASE CHECK:", {
+  exists: !!process.env.DATABASE_URL,
+  value: process.env.DATABASE_URL?.substring(0, 20)
+});
+
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
