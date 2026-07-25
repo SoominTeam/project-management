@@ -26,6 +26,11 @@ app.all("/api/debug", (req, res) => {
 
 app.use('/api/inngest' , serve({ client: inngest, functions })); // route to handle Inngest events
 
+console.log({
+  signing: !!process.env.INNGEST_SIGNING_KEY,
+  event: !!process.env.INNGEST_EVENT_KEY,
+});
+
 const PORT = process.env.PORT || 5000;    // set the port to listen on
 
 app.listen(PORT, () => { // start the server
