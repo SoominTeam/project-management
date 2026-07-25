@@ -9,26 +9,31 @@ import { inngest, functions } from './inngest/index.js';
 
 const app = express();
 
+
+// =====================================================
+// MIDDLEWARE
+// =====================================================
+
 app.use(cors());
 app.use(express.json());
 
 
 // =====================================================
-// 🔍 GLOBAL DEBUG - BEFORE EVERYTHING
+// 🔍 GLOBAL REQUEST DEBUG
 // =====================================================
 
 app.use((req, res, next) => {
-  console.log('\n==============================');
-  console.log('🚨 INCOMING REQUEST');
-  console.log('==============================');
+  console.log('\n========================================');
+  console.log('🚨 REQUEST START');
+  console.log('========================================');
 
-  console.log('➡️ Method:', req.method);
-  console.log('➡️ URL:', req.originalUrl);
-  console.log('➡️ Path:', req.path);
-  console.log('➡️ Host:', req.headers.host);
-  console.log('➡️ User-Agent:', req.headers['user-agent']);
+  console.log('METHOD:', req.method);
+  console.log('URL:', req.originalUrl);
+  console.log('PATH:', req.path);
+  console.log('HOST:', req.headers.host);
+  console.log('USER AGENT:', req.headers['user-agent']);
 
-  console.log('\n📦 Inngest Headers:');
+  console.log('\n📦 INNGEST HEADERS');
 
   console.log(
     'x-inngest-signature:',
@@ -52,7 +57,7 @@ app.use((req, res, next) => {
     req.headers['x-inngest-environment'] || '❌ MISSING'
   );
 
-  console.log('\n🔑 Environment:');
+  console.log('\n🔑 ENVIRONMENT');
 
   console.log(
     'INNGEST_SIGNING_KEY:',
@@ -68,35 +73,52 @@ app.use((req, res, next) => {
       : '❌ MISSING'
   );
 
-  console.log('\n==============================\n');
+  // Response status
+  res.on('finish', () => {
+    console.log('\n🏁 RESPONSE FINISHED');
+    console.log('URL:', req.originalUrl);
+    console.log('STATUS:', res.statusCode);
+    console.log('========================================\n');
+  });
 
   next();
 });
 
 
 // =====================================================
-// 🔥 INNGEST
+// 🔥 INNGEST ROUTE
 // =====================================================
 
 console.log('🚀 Registering Inngest route...');
 
 app.use(
   '/api/inngest',
+
   (req, res, next) => {
+    console.log('\n🟣🟣🟣 ENTERED INNGEST ROUTE 🟣🟣🟣');
 
-    console.log('\n🟣 ENTERED INNGEST ROUTE');
-
-    console.log('Method:', req.method);
+    console.log('METHOD:', req.method);
     console.log('URL:', req.originalUrl);
+    console.log('PATH:', req.path);
 
     console.log(
-      'Signature:',
+      'SIGNATURE:',
       req.headers['x-inngest-signature']
         ? '✅ EXISTS'
         : '❌ MISSING'
     );
 
-    console.log('Calling Inngest serve()...\n');
+    console.log(
+      'SDK:',
+      req.headers['x-inngest-sdk'] || '❌ MISSING'
+    );
+
+    console.log(
+      'SERVER KIND:',
+      req.headers['x-inngest-server-kind'] || '❌ MISSING'
+    );
+
+    console.log('➡️ Passing request to Inngest serve()...');
 
     next();
   },
@@ -118,37 +140,54 @@ app.use(clerkMiddleware());
 
 
 // =====================================================
-// TEST ROUTES
+// 🏠 ROOT ROUTE
 // =====================================================
 
 app.get('/', (req, res) => {
-
   console.log('🏠 GET /');
 
   res.status(200).send('Server is running');
 });
 
 
-app.get('/api/debug', (req, res) => {
+// =====================================================
+// 🐛 DEBUG ROUTE
+// =====================================================
 
-  console.log('🐛 GET /api/debug');
+app.all('/api/debug', (req, res) => {
+  console.log('🐛 DEBUG ROUTE');
 
   res.json({
     ok: true,
     method: req.method,
     url: req.originalUrl,
-    auth: req.auth,
+    headers: {
+      host: req.headers.host,
+      userAgent: req.headers['user-agent'],
+      inngestSignature: req.headers['x-inngest-signature']
+        ? 'EXISTS'
+        : 'MISSING',
+      inngestSdk: req.headers['x-inngest-sdk'] || null,
+      inngestServerKind:
+        req.headers['x-inngest-server-kind'] || null,
+      inngestEnvironment:
+        req.headers['x-inngest-environment'] || null,
+    },
+    environment: {
+      signingKey: !!process.env.INNGEST_SIGNING_KEY,
+      eventKey: !!process.env.INNGEST_EVENT_KEY,
+    },
   });
 });
 
 
 // =====================================================
-// ENV DEBUG
+// 🔑 ENVIRONMENT CHECK
 // =====================================================
 
-console.log('\n================================');
-console.log('🔥 SERVER ENV CHECK');
-console.log('================================');
+console.log('\n========================================');
+console.log('🔥 ENVIRONMENT CHECK');
+console.log('========================================');
 
 console.log(
   'INNGEST_SIGNING_KEY:',
@@ -164,15 +203,24 @@ console.log(
     : '❌ MISSING'
 );
 
-console.log('================================\n');
+console.log(
+  'CLERK_SECRET_KEY:',
+  process.env.CLERK_SECRET_KEY
+    ? '✅ EXISTS'
+    : '❌ MISSING'
+);
+
+console.log('========================================\n');
 
 
 // =====================================================
-// SERVER
+// 🚀 SERVER
 // =====================================================
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
+  console.log('========================================');
   console.log(`🚀 Server is running on port ${PORT}`);
+  console.log('========================================');
 });
