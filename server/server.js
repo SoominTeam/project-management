@@ -2,20 +2,33 @@ import express from 'express';
 import 'dotenv/config';
 import cors from 'cors';
 
-import { clerkMiddleware } from '@clerk/express'; // import the clerk middleware
+import { clerkMiddleware } from '@clerk/express';
+import { serve } from 'inngest/express';
 
-import { serve } from 'inngest/express'; // import the Inngest express handler
-import { inngest, functions } from './inngest/index.js'; // import the Inngest client and functions
+import { inngest, functions } from './inngest/index.js';
 
-const app = express(); // making an app
+const app = express();
 
-app.use(express.json());   // to parse incoming JSON requests
-app.use(cors());       // to allow cross-origin requests
-app.use(clerkMiddleware()); // use the clerk middleware
+app.use(express.json());
+app.use(cors());
 
-app.get('/', (req, res) => { res.send("Server is running") });   // test route
+// Inngest BEFORE Clerk
+app.use(
+  '/api/inngest',
+  serve({
+    client: inngest,
+    functions,
+  })
+);
 
-app.all("/api/debug", (req, res) => {
+// Clerk AFTER Inngest
+app.use(clerkMiddleware());
+
+app.get('/', (req, res) => {
+  res.send('Server is running');
+});
+
+app.all('/api/debug', (req, res) => {
   res.json({
     ok: true,
     method: req.method,
@@ -24,15 +37,13 @@ app.all("/api/debug", (req, res) => {
   });
 });
 
-app.use('/api/inngest' , serve({ client: inngest, functions })); // route to handle Inngest events
-
 console.log({
   signing: !!process.env.INNGEST_SIGNING_KEY,
   event: !!process.env.INNGEST_EVENT_KEY,
 });
 
-const PORT = process.env.PORT || 5000;    // set the port to listen on
+const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => { // start the server
-    console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
