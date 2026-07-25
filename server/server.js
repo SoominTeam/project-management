@@ -31,10 +31,8 @@ console.log({
   event: !!process.env.INNGEST_EVENT_KEY,
 });
 
-/*const PORT = process.env.PORT || 5000;    // set the port to listen on
+const PORT = process.env.PORT || 5000;    // set the port to listen on
 
 app.listen(PORT, () => { // start the server
     console.log(`Server is running on port ${PORT}`);
-});*/
-
-export default app; // export the app for use in other files
+});
