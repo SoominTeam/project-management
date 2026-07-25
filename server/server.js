@@ -15,6 +15,15 @@ app.use(clerkMiddleware()); // use the clerk middleware
 
 app.get('/', (req, res) => { res.send("Server is running") });   // test route
 
+app.all("/api/debug", (req, res) => {
+  res.json({
+    ok: true,
+    method: req.method,
+    auth: req.auth,
+    headers: req.headers,
+  });
+});
+
 app.use('/api/inngest' , serve({ client: inngest, functions })); // route to handle Inngest events
 
 const PORT = process.env.PORT || 5000;    // set the port to listen on
