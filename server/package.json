@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "npx prisma generate",
-    "start": "prisma generate && node server.js",
+    "start": "node server.js",
     "server": "nodemon server.js"
   },
   "keywords": [],
@@ -14,19 +14,17 @@
   "description": "",
   "dependencies": {
     "@clerk/express": "^2.1.46",
-    "@neondatabase/serverless": "^1.1.0",
-    "@prisma/adapter-neon": "^7.9.0",
-    "@prisma/client": "^7.9.0",
-    "@prisma/config": "^7.9.0",
+    "@neondatabase/serverless": "^0.10.4",
+    "@prisma/adapter-neon": "^5.22.0",
+    "@prisma/client": "^5.22.0",
     "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "i": "^0.3.7",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "inngest": "^4.13.0",
-    "ws": "^8.21.1"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
-    "prisma": "^7.9.0"
+    "prisma": "^5.22.0"
   }
 }

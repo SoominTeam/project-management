@@ -1,33 +1,44 @@
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool, neonConfig } from '@neondatabase/serverless'; // Pool اضافه شد
+// configs/prisma.js
+import { PrismaClient } from '@prisma/client'
 
-import ws from 'ws'; // import the WebSocket constructor
-neonConfig.webSocketConstructor = ws;
-
-console.log("DATABASE CHECK:", {
-  exists: !!process.env.DATABASE_URL,
-  value: process.env.DATABASE_URL?.substring(0, 20)
-});
-
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL
 
 if (!connectionString) {
-  throw new Error("DATABASE_URL missing");
+    throw new Error('❌ DATABASE_URL environment variable is not set')
 }
 
-// مرحله اول: ساخت یک Pool برای نئون
-const pool = new Pool({ connectionString });
+console.log('🔍 DATABASE_URL found:', {
+    exists: true,
+    preview: connectionString.substring(0, 20) + '...'
+})
 
-// مرحله دوم: پاس دادن Pool به آداپتور پریزما
-const adapter = new PrismaNeon(pool);
+// Singleton pattern برای جلوگیری از چندین اتصال
+const globalForPrisma = globalThis
 
-const prisma = global.prisma || new PrismaClient({ adapter });
+export const prisma = globalForPrisma.prisma || new PrismaClient({
+    datasourceUrl: connectionString,
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+})
 
-// شرط صحیح: اگر در محیط پروداکشن "نیستیم" (یعنی در حال توسعه هستیم)، آن را در گلوبال ذخیره کن
 if (process.env.NODE_ENV !== 'production') {
-  global.prisma = prisma;
+    globalForPrisma.prisma = prisma
 }
 
-export default prisma;
+// تابع تست اتصال
+export async function testDatabaseConnection() {
+    try {
+        await prisma.$connect()
+        console.log('✅ Database connected successfully!')
+        
+        // تست کوئری ساده
+        const result = await prisma.$queryRaw`SELECT 1 as connected, current_database() as db_name`
+        console.log('✅ Database info:', result)
+        
+        return true
+    } catch (error) {
+        console.error('❌ Database connection failed:', error.message)
+        throw error
+    }
+}
+
+export default prisma

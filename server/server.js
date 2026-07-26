@@ -1,14 +1,34 @@
-import express from 'express';
-import 'dotenv/config';
-import cors from 'cors';
+// server.js - اول فایل
+import express from 'express'
+import 'dotenv/config'
+import cors from 'cors'
+import { clerkMiddleware } from '@clerk/express'
+import { serve } from 'inngest/express'
+import { inngest, functions } from './inngest/index.js'
+import prisma, { testDatabaseConnection } from './configs/prisma.js'
 
-import { clerkMiddleware } from '@clerk/express';
-import { serve } from 'inngest/express';
+const app = express()
 
-import { inngest, functions } from './inngest/index.js';
+// =====================================================
+// 🚀 تست دیتابیس در استارت آپ
+// =====================================================
 
-const app = express();
+console.log('========================================')
+console.log('🚀 Starting server...')
+console.log('========================================')
 
+// تست اتصال دیتابیس
+try {
+  await testDatabaseConnection()
+  console.log('✅ Database is ready!')
+} catch (error) {
+  console.error('❌ Database connection failed on startup:', error.message)
+  // در Vercel به خطا ادامه ندید
+  if (process.env.VERCEL) {
+    console.error('💀 Exiting due to database connection failure')
+    process.exit(1)
+  }
+}
 
 // =====================================================
 // MIDDLEWARE
