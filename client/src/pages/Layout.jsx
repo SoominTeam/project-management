@@ -10,7 +10,7 @@ import { fetchWorkspaces } from '../features/workspaceSlice';
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [checkCount, setCheckCount] = useState(0);
+    const [hasFetched, setHasFetched] = useState(false);
     const { loading, workspaces } = useSelector((state) => state.workspace);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -21,26 +21,19 @@ const Layout = () => {
         dispatch(loadTheme());
     }, []);
 
-    // ✅ فقط 3 بار تلاش کن
+    // ✅ فقط یک بار fetch کن
     useEffect(() => {
-    if (isLoaded && user && workspaces.length === 0 && checkCount < 3) {
-        console.log('🔄 Fetching workspaces (attempt', checkCount + 1, ')...');
-        
-        // ✅ Token رو بگیر و ببین
-        getToken().then(token => {
-            console.log('🔍 Token exists:', !!token);
-            console.log('🔍 Token preview:', token?.substring(0, 30) + '...');
-        });
-        
-        dispatch(fetchWorkspaces(getToken));
-        setCheckCount(prev => prev + 1);
-    }
-}, [user, isLoaded, workspaces.length, dispatch, getToken, checkCount]);
+        if (isLoaded && user && !hasFetched) {
+            console.log('🔍 Fetching workspaces...');
+            dispatch(fetchWorkspaces(getToken));
+            setHasFetched(true);
+        }
+    }, [user, isLoaded, hasFetched, dispatch, getToken]);
 
     // ✅ وقتی workspace پیدا شد ریدایرکت کن
     useEffect(() => {
         if (workspaces.length > 0) {
-            console.log('✅ Workspace found, redirecting...');
+            console.log('✅ Workspace found! Redirecting...');
             navigate('/', { replace: true });
         }
     }, [workspaces.length, navigate]);

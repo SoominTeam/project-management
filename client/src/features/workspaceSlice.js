@@ -7,9 +7,8 @@ export const fetchWorkspaces = createAsyncThunk(
         try {
             console.log('🔍 Getting token...');
             const token = await getToken();
-            console.log('🔍 Token received:', token ? '✅ YES' : '❌ NO');
-            console.log('🔍 Token type:', typeof token);
-            console.log('🔍 Token length:', token?.length || 0);
+            console.log('🔍 Token exists:', !!token);
+            console.log('🔍 Token preview:', token?.substring(0, 30) + '...');
             
             if (!token) {
                 console.error('❌ No token!');
@@ -19,17 +18,19 @@ export const fetchWorkspaces = createAsyncThunk(
             console.log('🔍 Making API call to /workspaces...');
             const { data } = await api.get('/workspaces', {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
             
             console.log('✅ API call successful!');
-            console.log('📦 Data:', data);
+            console.log('📦 Workspaces count:', data.workspaces?.length || 0);
             return data.workspaces || [];
         } catch (error) {
             console.error('❌ Error:', error.message);
             console.error('❌ Response data:', error.response?.data);
             console.error('❌ Response status:', error.response?.status);
+            console.error('❌ Response headers:', error.response?.headers);
             return rejectWithValue(error?.response?.data || error.message);
         }
     }
