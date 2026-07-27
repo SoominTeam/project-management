@@ -4,7 +4,7 @@ import api from "../configs/api";
 
 export const fetchWorkspaces = createAsyncThunk(
     'workspace/fetchWorkspaces',
-    async (getToken, { rejectWithValue }) => {
+    async ({getToken}) => {
         try {
             const token = await getToken(); // ✅ اینجا await کنید
             const { data } = await api.get('/workspaces', {
