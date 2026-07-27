@@ -1,32 +1,49 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadTheme } from '../features/themeSlice';
 import { Loader2Icon } from 'lucide-react';
 import { useUser, SignIn, useAuth, CreateOrganization } from '@clerk/clerk-react';
-import { fetchWorkspaces } from '../features/workspaceSlice.js'; // ✅ این رو اضافه کنید
+import { fetchWorkspaces } from '../features/workspaceSlice';
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [fetchAttempts, setFetchAttempts] = useState(0);
     const { loading, workspaces } = useSelector((state) => state.workspace);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { user, isLoaded } = useUser();
     const { getToken } = useAuth();
 
-    // Initial load of theme
+    // Load theme
     useEffect(() => {
         dispatch(loadTheme());
     }, []);
 
-    // Initial load of workspaces
+    // ✅ Fetch workspaces - با لاگ برای دیباگ
     useEffect(() => {
-        if (isLoaded && user && workspaces.length === 0) {
-            dispatch(fetchWorkspaces(getToken)); // ✅ فقط getToken رو پاس بدید، نه آبجکت
+        if (isLoaded && user) {
+            console.log('🔍 User loaded, workspaces:', workspaces.length);
+            if (workspaces.length === 0 && fetchAttempts < 5) {
+                console.log(`🔄 Fetching workspaces (attempt ${fetchAttempts + 1})...`);
+                dispatch(fetchWorkspaces(getToken));
+                setFetchAttempts(prev => prev + 1);
+            }
         }
-    }, [user, isLoaded]); // ✅ dependencies رو کامل کنید
+    }, [user, isLoaded, workspaces.length, dispatch, getToken, fetchAttempts]);
 
+    // ✅ وقتی workspace پیدا شد، ریدایرکت کن
+    useEffect(() => {
+        console.log('📊 Workspaces changed:', workspaces.length);
+        if (workspaces.length > 0) {
+            console.log('✅ Workspace found, redirecting to dashboard...');
+            navigate('/', { replace: true });
+        }
+    }, [workspaces.length, navigate]);
+
+    // اگر کاربر وارد نشده
     if (!user) {
         return (
             <div className='flex justify-center items-center h-screen bg-white dark:bg-zinc-950'>
@@ -35,6 +52,7 @@ const Layout = () => {
         );
     }
 
+    // اگر در حال بارگذاری
     if (loading) {
         return (
             <div className='flex items-center justify-center h-screen bg-white dark:bg-zinc-950'>
@@ -43,14 +61,18 @@ const Layout = () => {
         );
     }
 
+    // اگر کاربر workspace نداشته باشد
     if (user && workspaces.length === 0) {
+        console.log('🏠 No workspace found, showing CreateOrganization');
         return (
-            <div className='min-h-screen flex justify-center items-center'>
+            <div className='min-h-screen flex justify-center items-center bg-white dark:bg-zinc-950'>
                 <CreateOrganization />
             </div>
         );
     }
 
+    // نمایش صفحه اصلی
+    console.log('🎯 Rendering main layout with', workspaces.length, 'workspaces');
     return (
         <div className="flex bg-white dark:bg-zinc-950 text-gray-900 dark:text-slate-100">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
