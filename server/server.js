@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import 'dotenv/config';
 import cors from 'cors';
@@ -11,10 +12,6 @@ import { protect } from './middleware/authMiddleware.js';
 
 const app = express();
 
-// =====================================================
-// 🚀 DATABASE CONNECTION TEST
-// =====================================================
-
 console.log('🚀 Starting server...');
 
 try {
@@ -27,40 +24,44 @@ try {
   }
 }
 
-// =====================================================
-// MIDDLEWARE
-// =====================================================
-
 app.use(cors());
 app.use(express.json());
 app.use(clerkMiddleware());
 
 // =====================================================
+// ✅ TEST WEBHOOK ROUTE
+// =====================================================
+app.post('/api/webhook-test', (req, res) => {
+  console.log('🔔 TEST WEBHOOK RECEIVED!');
+  console.log('📦 Body:', req.body);
+  console.log('📦 Headers:', req.headers);
+  res.json({ 
+    success: true, 
+    message: 'Webhook received!',
+    body: req.body 
+  });
+});
+
+// =====================================================
 // INNGEST ROUTE
 // =====================================================
-
-app.use('/api/inngest', serve({
+app.use('/api/inngest', (req, res, next) => {
+  console.log('🔔🔔🔔 INNGEST WEBHOOK RECEIVED!');
+  console.log('METHOD:', req.method);
+  console.log('URL:', req.url);
+  console.log('HEADERS:', req.headers);
+  console.log('BODY:', req.body);
+  next();
+}, serve({
   client: inngest,
   functions,
 }));
 
-// =====================================================
-// ROUTES
-// =====================================================
-
 app.use('/api/workspaces', protect, workspaceRouter);
-
-// =====================================================
-// HEALTH CHECK
-// =====================================================
 
 app.get('/', (req, res) => {
   res.status(200).send('Server is running');
 });
-
-// =====================================================
-// SERVER
-// =====================================================
 
 const PORT = process.env.PORT || 5000;
 
