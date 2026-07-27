@@ -23,12 +23,19 @@ const Layout = () => {
 
     // ✅ فقط 3 بار تلاش کن
     useEffect(() => {
-        if (isLoaded && user && workspaces.length === 0 && checkCount < 3) {
-            console.log(`🔄 Fetching workspaces (attempt ${checkCount + 1})...`);
-            dispatch(fetchWorkspaces(getToken));
-            setCheckCount(prev => prev + 1);
-        }
-    }, [user, isLoaded, workspaces.length, dispatch, getToken, checkCount]);
+    if (isLoaded && user && workspaces.length === 0 && checkCount < 3) {
+        console.log('🔄 Fetching workspaces (attempt', checkCount + 1, ')...');
+        
+        // ✅ Token رو بگیر و ببین
+        getToken().then(token => {
+            console.log('🔍 Token exists:', !!token);
+            console.log('🔍 Token preview:', token?.substring(0, 30) + '...');
+        });
+        
+        dispatch(fetchWorkspaces(getToken));
+        setCheckCount(prev => prev + 1);
+    }
+}, [user, isLoaded, workspaces.length, dispatch, getToken, checkCount]);
 
     // ✅ وقتی workspace پیدا شد ریدایرکت کن
     useEffect(() => {

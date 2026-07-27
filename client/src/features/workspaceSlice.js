@@ -5,24 +5,31 @@ export const fetchWorkspaces = createAsyncThunk(
     'workspace/fetchWorkspaces',
     async (getToken, { rejectWithValue }) => {
         try {
+            console.log('🔍 Getting token...');
             const token = await getToken();
-            console.log('🔍 Fetching workspaces...');
+            console.log('🔍 Token received:', token ? '✅ YES' : '❌ NO');
+            console.log('🔍 Token type:', typeof token);
+            console.log('🔍 Token length:', token?.length || 0);
+            
+            if (!token) {
+                console.error('❌ No token!');
+                return rejectWithValue('No token available');
+            }
+            
+            console.log('🔍 Making API call to /workspaces...');
             const { data } = await api.get('/workspaces', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
-            console.log('📦 API Response:', data);
-            console.log('📦 Workspaces count:', data.workspaces?.length || 0);
             
-            // ✅ این خط رو اضافه کن تا مطمئن بشی data درست میاد
-            if (data.workspaces && data.workspaces.length > 0) {
-                console.log('✅ First workspace:', data.workspaces[0].name);
-            }
-            
+            console.log('✅ API call successful!');
+            console.log('📦 Data:', data);
             return data.workspaces || [];
         } catch (error) {
             console.error('❌ Error:', error.message);
+            console.error('❌ Response data:', error.response?.data);
+            console.error('❌ Response status:', error.response?.status);
             return rejectWithValue(error?.response?.data || error.message);
         }
     }
