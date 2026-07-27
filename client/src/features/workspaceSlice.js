@@ -1,12 +1,11 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"; // ✅ createAsyncThunk رو اینجا import کنید
-import { dummyWorkspaces } from "../assets/assets";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../configs/api";
 
 export const fetchWorkspaces = createAsyncThunk(
     'workspace/fetchWorkspaces',
-    async ({getToken}) => {
+    async (getToken, { rejectWithValue }) => {  // ✅ getToken مستقیم، rejectWithValue تعریف شده
         try {
-            const token = await getToken(); // ✅ اینجا await کنید
+            const token = await getToken();
             const { data } = await api.get('/workspaces', {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -15,7 +14,7 @@ export const fetchWorkspaces = createAsyncThunk(
             return data.workspaces || [];
         } catch (error) {
             console.log(error?.response?.data?.message || error.message);
-            return rejectWithValue(error?.response?.data || error.message);
+            return rejectWithValue(error?.response?.data || error.message); // ✅ rejectWithValue درست
         }
     }
 );

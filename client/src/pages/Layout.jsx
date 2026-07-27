@@ -25,7 +25,7 @@ const Layout = () => {
         if (isLoaded && user && workspaces.length === 0) {
             dispatch(fetchWorkspaces(getToken)); // ✅ فقط getToken رو پاس بدید، نه آبجکت
         }
-    }, [user, isLoaded, workspaces.length, dispatch]); // ✅ dependencies رو کامل کنید
+    }, [user, isLoaded]); // ✅ dependencies رو کامل کنید
 
     if (!user) {
         return (
