@@ -10,28 +10,31 @@ import { fetchWorkspaces } from '../features/workspaceSlice';
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [checkCount, setCheckCount] = useState(0);
     const { loading, workspaces } = useSelector((state) => state.workspace);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { user, isLoaded } = useUser();
     const { getToken } = useAuth();
 
+    // Load theme
     useEffect(() => {
         dispatch(loadTheme());
     }, []);
 
-    // ✅ فقط یه بار fetch کن
+    // ✅ فقط 3 بار تلاش کن و بعدش دیگه ول کن
     useEffect(() => {
-        if (isLoaded && user) {
-            console.log('🔍 Fetching workspaces...');
+        if (isLoaded && user && workspaces.length === 0 && checkCount < 3) {
+            console.log(`🔄 Fetching workspaces (attempt ${checkCount + 1})...`);
             dispatch(fetchWorkspaces(getToken));
+            setCheckCount(prev => prev + 1);
         }
-    }, [user, isLoaded, dispatch, getToken]);
+    }, [user, isLoaded, workspaces.length, dispatch, getToken, checkCount]);
 
-    // ✅ وقتی workspace پیدا شد ریدایرکت کن
+    // ✅ وقتی workspace پیدا شد، ریدایرکت کن
     useEffect(() => {
         if (workspaces.length > 0) {
-            console.log('✅ Workspace found! Redirecting...');
+            console.log('✅ Workspace found, redirecting...');
             navigate('/', { replace: true });
         }
     }, [workspaces.length, navigate]);
