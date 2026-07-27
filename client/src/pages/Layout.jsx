@@ -17,12 +17,11 @@ const Layout = () => {
     const { user, isLoaded } = useUser();
     const { getToken } = useAuth();
 
-    // Load theme
     useEffect(() => {
         dispatch(loadTheme());
     }, []);
 
-    // ✅ فقط 3 بار تلاش کن و بعدش دیگه ول کن
+    // ✅ فقط 3 بار تلاش کن
     useEffect(() => {
         if (isLoaded && user && workspaces.length === 0 && checkCount < 3) {
             console.log(`🔄 Fetching workspaces (attempt ${checkCount + 1})...`);
@@ -31,7 +30,7 @@ const Layout = () => {
         }
     }, [user, isLoaded, workspaces.length, dispatch, getToken, checkCount]);
 
-    // ✅ وقتی workspace پیدا شد، ریدایرکت کن
+    // ✅ وقتی workspace پیدا شد ریدایرکت کن
     useEffect(() => {
         if (workspaces.length > 0) {
             console.log('✅ Workspace found, redirecting...');

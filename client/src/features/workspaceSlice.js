@@ -12,10 +12,17 @@ export const fetchWorkspaces = createAsyncThunk(
                     Authorization: `Bearer ${token}`
                 }
             });
-            console.log('✅ Workspaces fetched:', data.workspaces?.length || 0, 'workspaces');
+            console.log('📦 API Response:', data);
+            console.log('📦 Workspaces count:', data.workspaces?.length || 0);
+            
+            // ✅ این خط رو اضافه کن تا مطمئن بشی data درست میاد
+            if (data.workspaces && data.workspaces.length > 0) {
+                console.log('✅ First workspace:', data.workspaces[0].name);
+            }
+            
             return data.workspaces || [];
         } catch (error) {
-            console.error('❌ Error fetching workspaces:', error.message);
+            console.error('❌ Error:', error.message);
             return rejectWithValue(error?.response?.data || error.message);
         }
     }
