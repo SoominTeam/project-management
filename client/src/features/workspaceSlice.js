@@ -3,18 +3,20 @@ import api from "../configs/api";
 
 export const fetchWorkspaces = createAsyncThunk(
     'workspace/fetchWorkspaces',
-    async (getToken, { rejectWithValue }) => {  // ✅ getToken مستقیم، rejectWithValue تعریف شده
+    async (getToken, { rejectWithValue }) => {
         try {
             const token = await getToken();
+            console.log('🔍 Fetching workspaces...');
             const { data } = await api.get('/workspaces', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
+            console.log('✅ Workspaces fetched:', data.workspaces?.length || 0, 'workspaces');
             return data.workspaces || [];
         } catch (error) {
-            console.log(error?.response?.data?.message || error.message);
-            return rejectWithValue(error?.response?.data || error.message); // ✅ rejectWithValue درست
+            console.error('❌ Error fetching workspaces:', error.message);
+            return rejectWithValue(error?.response?.data || error.message);
         }
     }
 );
@@ -61,13 +63,11 @@ const workspaceSlice = createSlice({
         },
         addTask: (state, action) => {
             state.currentWorkspace.projects = state.currentWorkspace.projects.map((p) => {
-                console.log(p.id, action.payload.projectId, p.id === action.payload.projectId);
                 if (p.id === action.payload.projectId) {
                     p.tasks.push(action.payload);
                 }
                 return p;
             });
-
             state.workspaces = state.workspaces.map((w) =>
                 w.id === state.currentWorkspace.id ? {
                     ...w, projects: w.projects.map((p) =>
@@ -139,5 +139,15 @@ const workspaceSlice = createSlice({
     }
 });
 
-export const { setWorkspaces, setCurrentWorkspace, addWorkspace, updateWorkspace, deleteWorkspace, addProject, addTask, updateTask, deleteTask } = workspaceSlice.actions;
+export const { 
+    setWorkspaces, 
+    setCurrentWorkspace, 
+    addWorkspace, 
+    updateWorkspace, 
+    deleteWorkspace, 
+    addProject, 
+    addTask, 
+    updateTask, 
+    deleteTask 
+} = workspaceSlice.actions;
 export default workspaceSlice.reducer;
